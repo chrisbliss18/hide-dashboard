@@ -5,12 +5,12 @@ jQuery( document ).ready( function ( $ ) {
 
 		if ( $( '#hd_enabled' ).is( ':checked' ) ) {
 
-			$( '#hd_slug, #hd_theme_compat' ).closest( 'tr' ).show();
+			$( '#hd_slug, #hd_theme_compat, #hd_register' ).closest( 'tr' ).show();
 			$( '#hd_theme_compat' ).change();
 
 		} else {
 
-			$( '#hd_slug, #hd_theme_compat, #hd_theme_compat_slug' ).closest( 'tr' ).hide();
+			$( '#hd_slug, #hd_theme_compat, #hd_theme_compat_slug, #hd_register' ).closest( 'tr' ).hide();
 
 		}
 

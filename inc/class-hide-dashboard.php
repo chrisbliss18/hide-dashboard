@@ -192,7 +192,20 @@ class Hide_Dashboard {
 	 */
 	public function sanitize_register( $input ) {
 
-		return $input;
+		$slug = trim( sanitize_title( $input ) );
+
+		if ( in_array( $slug, $this->forbidden_slugs ) ) {
+
+			$type    = 'error';
+			$message = __( 'Invalid registration slug used. The registration slug cannot be \"login,\" \"admin,\" \"dashboard,\" or \"wp-login.php\" or \"\" (blank) as these are use by default in WordPress.', 'hide-dashboard' );
+
+			add_settings_error( 'hide-dashboard', esc_attr( 'settings_updated' ), $message, $type );
+			update_site_option( 'hd_enabled', false );
+
+		}
+
+		return $slug;
+
 	}
 
 	/**
@@ -312,7 +325,11 @@ class Hide_Dashboard {
 	 */
 	public function settings_field_register() {
 
-		echo 'field';
+		$slug = get_site_option( 'hd_register' ) !== false && get_site_option( 'hd_register' ) !== 'wp-register.php' ? sanitize_title( get_site_option( 'hd_register' ) ) : 'wp-register.php'; //set the default slug to wplogin
+
+		echo '<input name="hd_register" id="hd_register" value="' . $slug . '" type="text"><br />';
+		echo '<label for="hd_register">' . __( 'Registration URL:', 'hide-dashboard' ) . trailingslashit( get_option( 'siteurl' ) ) . '<span style="color: #4AA02C">' . $slug . '</span></label>';
+
 	}
 
 	/**
