@@ -5,11 +5,11 @@ jQuery( document ).ready( function ( $ ) {
 
 		if ( $( '#hd_enabled' ).is( ':checked' ) ) {
 
-			$( '#hd_slug' ).closest( 'tr' ).show();
+			$( '#hd_slug, #hd_theme_compat' ).closest( 'tr' ).show();
 
 		} else {
 
-			$( '#hd_slug' ).closest( 'tr' ).hide();
+			$( '#hd_slug, #hd_theme_compat' ).closest( 'tr' ).hide();
 
 		}
 

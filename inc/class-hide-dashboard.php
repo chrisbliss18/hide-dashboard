@@ -241,7 +241,8 @@ class Hide_Dashboard {
 	 */
 	public function sanitize_theme_compat( $input ) {
 
-		return $input;
+		return ( isset( $input ) && intval( $input == 1 ) ? true : false );
+		
 	}
 
 	/**
@@ -340,7 +341,9 @@ class Hide_Dashboard {
 	 */
 	public function settings_field_theme_compat() {
 
-		echo 'field';
+		echo '<input type="checkbox" id="hd_theme_compat" name="hd_theme_compat" value="1" ' . checked( get_site_option( 'hd_theme_compat' ), true, false ) . '/>';
+		echo '<label for="hd_theme_compat"> ' . __( 'Enable theme compatibility. If  you see errors in your theme when using hide backend, in particular when going to wp-admin while not logged in, turn this on to fix them.', 'hide-dashboard' ) . '</label>';
+
 	}
 
 	/**
