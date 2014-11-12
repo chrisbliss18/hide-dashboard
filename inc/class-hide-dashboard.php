@@ -15,6 +15,7 @@
 class Hide_Dashboard {
 
 	private
+		$forbidden_slugs,
 		$plugin_data,
 		$plugin_file;
 
@@ -29,8 +30,16 @@ class Hide_Dashboard {
 	 */
 	public function __construct( $plugin_file ) {
 
-		$this->plugin_file = $plugin_file;
-		$this->plugin_data = get_plugin_data( $this->plugin_file, false );
+		$this->plugin_file     = $plugin_file;
+		$this->plugin_data     = get_plugin_data( $this->plugin_file, false );
+		$this->forbidden_slugs = array(
+			'admin',
+			'login',
+			'wp-login.php',
+			'dashboard',
+			'wp-admin',
+			''
+		); //strings that can't be used for the slug due to conflict
 
 		//remember the text domain
 		load_plugin_textdomain( 'hide-dashboard', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
@@ -219,17 +228,9 @@ class Hide_Dashboard {
 	 */
 	public function sanitize_slug( $input ) {
 
-		$forbidden_slugs = array(
-			'admin',
-			'login',
-			'wp-login.php',
-			'dashboard',
-			'wp-admin',
-			''
-		); //strings that can't be used for the slug due to conflict
-		$slug            = trim( sanitize_title( $input ) );
+		$slug = trim( sanitize_title( $input ) );
 
-		if ( in_array( $slug, $forbidden_slugs ) ) {
+		if ( in_array( $slug, $this->forbidden_slugs ) ) {
 
 			$type    = 'error';
 			$message = __( 'Invalid hide login slug used. The login url slug cannot be \"login,\" \"admin,\" \"dashboard,\" or \"wp-login.php\" or \"\" (blank) as these are use by default in WordPress.', 'hide-dashboard' );
@@ -269,7 +270,19 @@ class Hide_Dashboard {
 	 */
 	public function sanitize_theme_compat_slug( $input ) {
 
-		return trim( sanitize_title( $input ) );
+		$slug = trim( sanitize_title( $input ) );
+
+		if ( in_array( $slug, $this->forbidden_slugs ) ) {
+
+			$type    = 'error';
+			$message = __( 'Invalid theme compatibility login slug used. The theme compatibility slug cannot be \"login,\" \"admin,\" \"dashboard,\" or \"wp-login.php\" or \"\" (blank) as these are use by default in WordPress.', 'hide-dashboard' );
+
+			add_settings_error( 'hide-dashboard', esc_attr( 'settings_updated' ), $message, $type );
+			update_site_option( 'hd_enabled', false );
+
+		}
+
+		return $slug;
 
 	}
 
