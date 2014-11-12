@@ -25,7 +25,7 @@ class Hide_Dashboard {
 	 *
 	 * @param string $plugin_file the main plugin file
 	 *
-	 * @return Hide_Dashboard_Admin
+	 * @return Hide_Dashboard
 	 */
 	public function __construct( $plugin_file ) {
 
