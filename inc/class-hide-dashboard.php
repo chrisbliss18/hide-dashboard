@@ -58,8 +58,36 @@ class Hide_Dashboard {
 	 */
 	public function admin_enqueue_scripts() {
 
+		$slug_changed = get_site_option( 'hd_slug_changed' );
+		$slug_text    = '';
+
+		if ( $slug_changed !== false ) {
+
+			delete_site_option( 'hd_slug_changed' );
+
+			$new_slug = get_site_url() . '/' . get_site_option( 'hd_slug' );
+
+			$slug_text = sprintf(
+				'%s%s%s%s%s',
+				__( 'Warning: Your admin URL has changed. Use the following URL to login to your site', 'hide-dashboard' ),
+				PHP_EOL . PHP_EOL,
+				$new_slug,
+				PHP_EOL . PHP_EOL,
+				__( 'Please note this may be different than what you sent as the URL was sanitized to meet various requirements. A reminder has also been sent to the site administrator.', 'hide-dashboard' )
+			);
+
+		}
+
 		if ( get_current_screen()->id == 'options-general' ) {
-			wp_enqueue_script( 'hide-dasboard', plugins_url( '/js/hide-dashboard.js', $this->plugin_file ), array( 'jquery' ), $this->plugin_data['Version'] );
+			wp_enqueue_script( 'hide-dashboard-js', plugins_url( '/js/hide-dashboard.js', $this->plugin_file ), array( 'jquery' ), $this->plugin_data['Version'] );
+			wp_localize_script(
+				'hide-dashboard-js',
+				'hide_dashboard',
+				array(
+					'slug_changed' => $slug_changed,
+					'slug_text'    => $slug_text,
+				)
+			);
 		}
 
 	}
@@ -239,6 +267,10 @@ class Hide_Dashboard {
 			add_settings_error( 'hide-dashboard', esc_attr( 'settings_updated' ), $message, $type );
 			update_site_option( 'hd_enabled', false );
 
+		}
+
+		if ( get_site_option( 'hd_slug' ) !== $slug ) {
+			add_site_option( 'hd_slug_changed', true );
 		}
 
 		return $slug;

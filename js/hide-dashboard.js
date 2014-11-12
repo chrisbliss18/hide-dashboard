@@ -1,5 +1,10 @@
 jQuery( document ).ready( function ( $ ) {
 
+	//Show a warning about the new login slug if it has changed
+	if ( hide_dashboard.slug_changed ) {
+		alert( hide_dashboard.slug_text );
+	}
+
 	//hide all remaining hide dashboard features if enabled isn't checked
 	$( '#hd_enabled' ).change(function () {
 
