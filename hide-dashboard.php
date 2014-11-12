@@ -16,6 +16,6 @@
 if ( ! class_exists( 'Hide_Dashboard' ) ) {
 
 	require( dirname( __FILE__ ) . '/inc/class-hide-dashboard.php' );
-	new Hide_Dashboard_Actions( __FILE__ );
+	new Hide_Dashboard( __FILE__ );
 
 }
