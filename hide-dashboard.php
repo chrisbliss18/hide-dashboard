@@ -13,12 +13,9 @@
 	Copyright 2014  iThemes  (email : info@ithemes.com)
 */
 
-if ( ! class_exists( 'Hide_Dashboard_Actions' ) ) {
-	require( dirname( __FILE__ ) . '/inc/class-hide-dashboard-actions.php' );
-	new Hide_Dashboard_Actions( __FILE__ );
-}
+if ( ! class_exists( 'Hide_Dashboard' ) ) {
 
-if ( is_admin() && ! class_exists( 'Hide_Dashboard_Admin' ) ) {
-	require( dirname( __FILE__ ) . '/inc/class-hide-dashboard-admin.php' );
-	new Hide_Dashboard_Admin( __FILE__ );
+	require( dirname( __FILE__ ) . '/inc/class-hide-dashboard.php' );
+	new Hide_Dashboard_Actions( __FILE__ );
+
 }
