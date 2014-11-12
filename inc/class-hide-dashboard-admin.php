@@ -198,7 +198,7 @@ class Hide_Dashboard_Admin {
 		); //strings that can't be used for the slug due to conflict
 		$slug            = trim( sanitize_title( $input ) );
 
-		if ( in_array( $slug , $forbidden_slugs ) ) {
+		if ( in_array( $slug, $forbidden_slugs ) ) {
 
 			$type    = 'error';
 			$message = __( 'Invalid hide login slug used. The login url slug cannot be \"login,\" \"admin,\" \"dashboard,\" or \"wp-login.php\" or \"\" (blank) as these are use by default in WordPress.', 'hide-dashboard' );
@@ -252,7 +252,7 @@ class Hide_Dashboard_Admin {
 		//If permalinks aren't enabled promt them to enable them
 		if ( ( get_option( 'permalink_structure' ) == '' || get_option( 'permalink_structure' ) == false ) && ! is_multisite() ) {
 
-			$admin_url = is_multisite() ? admin_url( 'network/' ) : admin_url();
+			$admin_url = is_multisite() ? admin_url( 'network/' ) : admin_url(); //make sure to use network admin on multisite
 
 			printf(
 				'<p class="noPermalinks">%s <a href="%soptions-permalink.php">%s</a> %s</p>',
@@ -304,20 +304,12 @@ class Hide_Dashboard_Admin {
 	 */
 	public function settings_field_slug() {
 
-		if ( ( get_option( 'permalink_structure' ) == '' || get_option( 'permalink_structure' ) == false ) && ! is_multisite() ) {
+		$slug = get_site_option( 'hd_slug' ) !== false ? sanitize_title( get_site_option( 'hd_slug' ) ) : 'wplogin'; //set the default slug to wplogin
 
-			echo '';
-
-		} else {
-
-			$slug = get_site_option( 'hd_slug' ) !== false ? sanitize_title( get_site_option( 'hd_slug' ) ) : 'wplogin';
-
-			echo '<input name="hd_slug" id="hd_slug" value="' . $slug . '" type="text"><br />';
-			echo '<label for="hd_slug">' . __( 'Login URL:', 'hide-dashboard' ) . trailingslashit( get_option( 'siteurl' ) ) . '<span style="color: #4AA02C">' . $slug . '</span></label>';
-			echo '<p class="description">' . __( 'The login url slug cannot be "login," "admin," "dashboard," or "wp-login.php" as these are use by default in WordPress.', 'hide-dashboard' ) . '</p>';
-			echo '<p class="description"><em>' . __( 'Note: The output is limited to alphanumeric characters, underscore (_) and dash (-). Special characters such as "." and "/" are not allowed and will be converted in the same manner as a post title. Please review your selection before logging out.', 'hide-dashboard' ) . '</em></p>';
-
-		}
+		echo '<input name="hd_slug" id="hd_slug" value="' . $slug . '" type="text"><br />';
+		echo '<label for="hd_slug">' . __( 'Login URL:', 'hide-dashboard' ) . trailingslashit( get_option( 'siteurl' ) ) . '<span style="color: #4AA02C">' . $slug . '</span></label>';
+		echo '<p class="description">' . __( 'The login url slug cannot be "login," "admin," "dashboard," or "wp-login.php" as these are use by default in WordPress.', 'hide-dashboard' ) . '</p>';
+		echo '<p class="description"><em>' . __( 'Note: The output is limited to alphanumeric characters, underscore (_) and dash (-). Special characters such as "." and "/" are not allowed and will be converted in the same manner as a post title. Please review your selection before logging out.', 'hide-dashboard' ) . '</em></p>';
 
 	}
 
