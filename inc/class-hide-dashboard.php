@@ -116,9 +116,9 @@ class Hide_Dashboard {
 		);
 
 		add_settings_field(
-			'hd_post_login_action',
+			'hd_login_action',
 			__( 'Custom Login Action', 'hide-dashboard' ),
-			array( $this, 'settings_field_post_login_action' ),
+			array( $this, 'settings_field_login_action' ),
 			'general'
 		);
 
@@ -187,7 +187,8 @@ class Hide_Dashboard {
 	 */
 	public function sanitize_login_action( $input ) {
 
-		return $input;
+		return trim( sanitize_title( $input ) );
+
 	}
 
 	/**
@@ -324,9 +325,14 @@ class Hide_Dashboard {
 	 *
 	 * @return void
 	 */
-	public function settings_field_post_login_action() {
+	public function settings_field_login_action() {
 
-		echo 'field';
+		$slug = get_site_option( 'hd_login_action' ) !== false ? sanitize_title( get_site_option( 'hd_login_action' ) ) : ''; //set the default slug to wplogin
+
+		echo '<input name="hd_login_action" id="hd_login_action" value="' . $slug . '" type="text"><br />';
+		echo '<label for="hd_login_action">' . __( 'Custom Action:', 'hide-dashboard' ) . '</label>';
+		echo '<p class="description">' . __( 'WordPress uses the "action" variable to handle many login and logout functions. By default this plugin can handle the normal ones but some plugins and themes may utilize a custom action (such as logging out of a private post). If you need a custom action please enter it here.', 'hide-dashboard' ) . '</p>';
+
 	}
 
 	/**
