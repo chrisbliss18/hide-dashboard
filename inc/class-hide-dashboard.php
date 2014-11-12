@@ -12,7 +12,7 @@
  * @since 0.0.1
  *
  */
-class Hide_Dashboard_Admin {
+class Hide_Dashboard {
 
 	private
 		$plugin_data,
