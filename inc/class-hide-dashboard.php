@@ -230,15 +230,28 @@ class Hide_Dashboard {
 	 */
 	public function sanitize_register( $input ) {
 
-		$slug = trim( sanitize_title( $input ) );
+		if ( get_site_option( 'users_can_register' ) ) {
 
-		if ( in_array( $slug, $this->forbidden_slugs ) ) {
+			$slug = trim( sanitize_title( $input ) );
 
-			$type    = 'error';
-			$message = __( 'Invalid registration slug used. The registration slug cannot be \"login,\" \"admin,\" \"dashboard,\" or \"wp-login.php\" or \"\" (blank) as these are use by default in WordPress.', 'hide-dashboard' );
+			if ( in_array( $slug, $this->forbidden_slugs ) ) {
 
-			add_settings_error( 'hide-dashboard', esc_attr( 'settings_updated' ), $message, $type );
-			update_site_option( 'hd_enabled', false );
+				$slug = 'wp-register.php';
+				$type    = 'error';
+				$message = __( 'Invalid registration slug used. The registration slug cannot be \"login,\" \"admin,\" \"dashboard,\" or \"wp-login.php\" or \"\" (blank) as these are use by default in WordPress.', 'hide-dashboard' );
+
+				add_settings_error( 'hide-dashboard', esc_attr( 'settings_updated' ), $message, $type );
+				update_site_option( 'hd_enabled', false );
+
+			}
+
+		} elseif ( get_site_option( 'hd_register' ) !== false ) {
+
+			$slug = get_site_option( 'hd_register' );
+
+		} else {
+
+			$slug = 'wp-register.php';
 
 		}
 
