@@ -50,7 +50,7 @@ class Hide_Dashboard_Admin {
 	public function admin_enqueue_scripts() {
 
 		if ( get_current_screen()->id == 'options-general' ) {
-			wp_enqueue_script( 'hide-dasboard', plugins_url( '/js/hide-dashboard.js', $this->plugin_file ), array( 'jquery' ), $this->plugin_data['Version'], true );
+			wp_enqueue_script( 'hide-dasboard', plugins_url( '/js/hide-dashboard.js', $this->plugin_file ), array( 'jquery' ), $this->plugin_data['Version'] );
 		}
 
 	}
