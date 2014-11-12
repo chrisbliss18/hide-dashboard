@@ -147,7 +147,7 @@ class Hide_Dashboard {
 		register_setting(
 			'general',
 			'hd_theme_compat_slug',
-			array( $this, 'sanitize_theme_compat' )
+			array( $this, 'sanitize_theme_compat_slug' )
 		);
 
 	}
@@ -242,7 +242,7 @@ class Hide_Dashboard {
 	public function sanitize_theme_compat( $input ) {
 
 		return ( isset( $input ) && intval( $input == 1 ) ? true : false );
-		
+
 	}
 
 	/**
@@ -256,7 +256,8 @@ class Hide_Dashboard {
 	 */
 	public function sanitize_theme_compat_slug( $input ) {
 
-		return $input;
+		return trim( sanitize_title( $input ) );
+
 	}
 
 	/**
@@ -355,7 +356,12 @@ class Hide_Dashboard {
 	 */
 	public function settings_field_theme_compat_slug() {
 
-		echo 'field';
+		$slug = get_site_option( 'hd_theme_compat_slug' ) !== false ? sanitize_title( get_site_option( 'hd_theme_compat_slug' ) ) : 'not_found'; //set the default slug for a 404 page
+
+		echo '<input name="hd_theme_compat_slug" id="hd_theme_compat_slug" value="' . $slug . '" type="text"><br />';
+		echo '<label for="hd_theme_compat_slug">' . __( '404 Slug:', 'hide-dashboad' ) . trailingslashit( get_option( 'siteurl' ) ) . '<span style="color: #4AA02C">' . $slug . '</span></label>';
+		echo '<p class="description">' . __( 'The slug to redirect folks to when theme compatibility mode is enabled (just make sure it does not exist in your site).', 'hide-dashboad' ) . '</p>';
+
 	}
 
 }
