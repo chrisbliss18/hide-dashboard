@@ -15,6 +15,7 @@
 class Hide_Dashboard_Admin {
 
 	private
+		$plugin_data,
 		$plugin_file;
 
 	/**
@@ -29,11 +30,28 @@ class Hide_Dashboard_Admin {
 	public function __construct( $plugin_file ) {
 
 		$this->plugin_file = $plugin_file;
+		$this->plugin_data = get_plugin_data( $this->plugin_file, false );
 
 		//remember the text domain
 		load_plugin_textdomain( 'hide-dashboard', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
 
+		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) ); //enqueue scripts for admin page
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
+
+	}
+
+	/**
+	 * Enqueue necessary admin scripts.
+	 *
+	 * @since 0.0.1
+	 *
+	 * @return void
+	 */
+	public function admin_enqueue_scripts() {
+
+		if ( get_current_screen()->id == 'options-general' ) {
+			wp_enqueue_script( 'hide-dasboard', plugins_url( '/js/hide-dashboard.js', $this->plugin_file ), array( 'jquery' ), $this->plugin_data['Version'], true );
+		}
 
 	}
 
