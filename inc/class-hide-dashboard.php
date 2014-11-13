@@ -17,7 +17,9 @@ class Hide_Dashboard {
 	private
 		$forbidden_slugs,
 		$plugin_data,
-		$plugin_file;
+		$plugin_file,
+		$slug_changed,
+		$slug_text;
 
 	/**
 	 * Hide Dashboard admin constructor.
@@ -40,6 +42,8 @@ class Hide_Dashboard {
 			'wp-admin',
 			''
 		); //strings that can't be used for the slug due to conflict
+		$this->slug_changed    = false;
+		$this->slug_text       = '';
 
 		//remember the text domain
 		load_plugin_textdomain( 'hide-dashboard', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
@@ -58,34 +62,14 @@ class Hide_Dashboard {
 	 */
 	public function admin_enqueue_scripts() {
 
-		$slug_changed = get_site_option( 'hd_slug_changed' );
-		$slug_text    = '';
-
-		if ( $slug_changed !== false ) {
-
-			delete_site_option( 'hd_slug_changed' );
-
-			$new_slug = get_site_url() . '/' . get_site_option( 'hd_slug' );
-
-			$slug_text = sprintf(
-				'%s%s%s%s%s',
-				__( 'Warning: Your admin URL has changed. Use the following URL to login to your site', 'hide-dashboard' ),
-				PHP_EOL . PHP_EOL,
-				$new_slug,
-				PHP_EOL . PHP_EOL,
-				__( 'Please note this may be different than what you sent as the URL was sanitized to meet various requirements. A reminder has also been sent to the site administrator.', 'hide-dashboard' )
-			);
-
-		}
-
 		if ( get_current_screen()->id == 'options-general' ) {
 			wp_enqueue_script( 'hide-dashboard-js', plugins_url( '/js/hide-dashboard.js', $this->plugin_file ), array( 'jquery' ), $this->plugin_data['Version'] );
 			wp_localize_script(
 				'hide-dashboard-js',
 				'hide_dashboard',
 				array(
-					'slug_changed' => $slug_changed,
-					'slug_text'    => $slug_text,
+					'slug_changed' => $this->slug_changed,
+					'slug_text'    => $this->slug_text,
 				)
 			);
 		}
@@ -102,6 +86,25 @@ class Hide_Dashboard {
 	 * @return void
 	 */
 	public function admin_init() {
+
+		//Handle items that must be changed after changing the slug.
+		if ( get_site_option( 'hd_slug_changed' ) !== false ) {
+
+			delete_site_option( 'hd_slug_changed' ); //cleanup after ourselves.... Mom don't code here
+
+			$this->slug_changed = true;
+			$new_slug           = get_site_url() . '/' . get_site_option( 'hd_slug' );
+
+			$this->slug_text = sprintf(
+				'%s%s%s%s%s',
+				__( 'Warning: Your admin URL has changed. Use the following URL to login to your site', 'hide-dashboard' ),
+				PHP_EOL . PHP_EOL,
+				$new_slug,
+				PHP_EOL . PHP_EOL,
+				__( 'Please note this may be different than what you sent as the URL was sanitized to meet various requirements. A reminder has also been sent to the site administrator.', 'hide-dashboard' )
+			);
+
+		}
 
 		//add settings fields
 		add_settings_field(
