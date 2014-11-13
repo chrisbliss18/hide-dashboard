@@ -200,7 +200,17 @@ class Hide_Dashboard {
 	 */
 	public function sanitize_enabled( $input ) {
 
-		return ( isset( $input ) && intval( $input == 1 ) ? true : false );
+		$enabled = ( isset( $input ) && intval( $input == 1 ) ? true : false );
+
+		//Notify them of the login change if they turn off the feature
+		if ( get_site_option( 'hd_enabled' ) == true && $enabled == false ) {
+
+			add_site_option( 'hd_slug_changed', true ); //set an option so we can show the popup
+			$this->send_new_slug( 'wp-admin' ); //Send an email so they know what's up
+
+		}
+
+		return $enabled;
 
 	}
 
@@ -236,7 +246,7 @@ class Hide_Dashboard {
 
 			if ( in_array( $slug, $this->forbidden_slugs ) ) {
 
-				$slug = 'wp-register.php';
+				$slug    = 'wp-register.php';
 				$type    = 'error';
 				$message = __( 'Invalid registration slug used. The registration slug cannot be \"login,\" \"admin,\" \"dashboard,\" or \"wp-login.php\" or \"\" (blank) as these are use by default in WordPress.', 'hide-dashboard' );
 
@@ -283,7 +293,10 @@ class Hide_Dashboard {
 		}
 
 		if ( get_site_option( 'hd_slug' ) !== $slug ) {
-			add_site_option( 'hd_slug_changed', true );
+
+			add_site_option( 'hd_slug_changed', true ); //set an option so we can show the popup
+			$this->send_new_slug( $slug ); //Send an email so they know what's up
+
 		}
 
 		return $slug;
@@ -329,6 +342,64 @@ class Hide_Dashboard {
 		}
 
 		return $slug;
+
+	}
+
+	/**
+	 * Sends an email to notify site admins of the new login url
+	 *
+	 * @since 0.0.1
+	 *
+	 * @param  string $new_slug the new login url
+	 *
+	 * @return void
+	 */
+	private function send_new_slug( $new_slug ) {
+
+		$new_slug = trim( sanitize_title( $new_slug ) ); //never worry about extra cleanup
+
+		//Put the copy all together
+		$body = sprintf(
+			'<p>%s,</p><p>%s <a href="%s">%s</a>. %s <a href="%s">%s</a> %s.</p>',
+			__( 'Dear Site Admin', 'hide-dashboard' ),
+			__( 'This friendly email is just a reminder that you have changed the dashboard login address on', 'hide-dashboard' ),
+			get_site_url(),
+			get_site_url(),
+			__( 'You must now use', 'hide-dashboard' ),
+			trailingslashit( get_site_url() ) . $new_slug,
+			trailingslashit( get_site_url() ) . $new_slug,
+			__( 'to login to your WordPress website', 'hide-dashboard' )
+		);
+
+		//Setup the remainder of the email
+		$recipient = get_site_option( 'admin_email' );
+		$subject   = '[' . get_option( 'siteurl' ) . '] ' . __( 'WordPress Login Address Changed', 'hide-dashboard' );
+		$subject   = apply_filters( 'itsec_lockout_email_subject', $subject );
+		$headers   = 'From: ' . get_bloginfo( 'name' ) . ' <' . get_option( 'admin_email' ) . '>' . "\r\n";
+
+		//Send the email only if it is valid
+		if ( is_email( trim( $recipient ) ) ) {
+
+			//Use HTML Content type
+			add_filter( 'wp_mail_content_type', array( $this, 'set_html_content_type' ) );
+
+			wp_mail( trim( $recipient ), $subject, $body, $headers );
+
+			//Remove HTML Content type
+			remove_filter( 'wp_mail_content_type', array( $this, 'set_html_content_type' ) );
+
+		}
+
+	}
+
+	/**
+	 * Set HTML content type for email
+	 *
+	 * @return string html content type
+	 */
+	public function set_html_content_type() {
+
+		return 'text/html';
 
 	}
 
