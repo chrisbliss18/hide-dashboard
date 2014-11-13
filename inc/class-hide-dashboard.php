@@ -519,4 +519,8 @@ class Hide_Dashboard {
 
 	}
 
+	private function write_htacces() {
+
+	}
+
 }
