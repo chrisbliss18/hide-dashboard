@@ -96,7 +96,10 @@ class Hide_Dashboard {
 
 			//Get the correct_slug
 			if ( get_site_option( 'hd_enabled' ) == true ) {
+
+				add_rewrite_rule( $slug . '/?$','wp-login.php','top');
 				$slug = get_site_option( 'hd_slug' );
+
 			}
 
 			$this->slug_changed = true;
@@ -113,6 +116,9 @@ class Hide_Dashboard {
 
 			//Send an email to notify as well
 			$this->send_new_slug( $slug );
+
+			//Save the rewrite rules
+			flush_rewrite_rules();
 
 		}
 
@@ -521,10 +527,6 @@ class Hide_Dashboard {
 		echo '<input name="hd_theme_compat_slug" id="hd_theme_compat_slug" value="' . $slug . '" type="text"><br />';
 		echo '<label for="hd_theme_compat_slug">' . __( '404 Slug:', 'hide-dashboad' ) . trailingslashit( get_option( 'siteurl' ) ) . '<span style="color: #4AA02C">' . $slug . '</span></label>';
 		echo '<p class="description">' . __( 'The slug to redirect folks to when theme compatibility mode is enabled (just make sure it does not exist in your site).', 'hide-dashboad' ) . '</p>';
-
-	}
-
-	private function write_htacces() {
 
 	}
 
