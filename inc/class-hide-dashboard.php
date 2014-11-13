@@ -16,7 +16,6 @@ class Hide_Dashboard {
 
 	private
 		$forbidden_slugs,
-		$plugin_data,
 		$plugin_file,
 		$slug_changed,
 		$slug_text;
@@ -33,7 +32,6 @@ class Hide_Dashboard {
 	public function __construct( $plugin_file ) {
 
 		$this->plugin_file     = $plugin_file;
-		$this->plugin_data     = get_plugin_data( $this->plugin_file, false );
 		$this->forbidden_slugs = array(
 			'admin',
 			'login',
@@ -62,8 +60,10 @@ class Hide_Dashboard {
 	 */
 	public function admin_enqueue_scripts() {
 
+		$plugin_data = get_plugin_data( $this->plugin_file, false );
+
 		if ( get_current_screen()->id == 'options-general' ) {
-			wp_enqueue_script( 'hide-dashboard-js', plugins_url( '/js/hide-dashboard.js', $this->plugin_file ), array( 'jquery' ), $this->plugin_data['Version'] );
+			wp_enqueue_script( 'hide-dashboard-js', plugins_url( '/js/hide-dashboard.js', $this->plugin_file ), array( 'jquery' ), $plugin_data['Version'] );
 			wp_localize_script(
 				'hide-dashboard-js',
 				'hide_dashboard',
