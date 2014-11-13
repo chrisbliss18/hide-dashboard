@@ -92,17 +92,27 @@ class Hide_Dashboard {
 
 			delete_site_option( 'hd_slug_changed' ); //cleanup after ourselves.... Mom don't code here
 
+			$slug = 'wp-admin';
+
+			//Get the correct_slug
+			if ( get_site_option( 'hd_enabled' ) == true ) {
+				$slug = get_site_option( 'hd_slug' );
+			}
+
 			$this->slug_changed = true;
-			$new_slug           = get_site_url() . '/' . get_site_option( 'hd_slug' );
+			$login_url           = get_site_url() . '/' . $slug;
 
 			$this->slug_text = sprintf(
 				'%s%s%s%s%s',
 				__( 'Warning: Your admin URL has changed. Use the following URL to login to your site', 'hide-dashboard' ),
 				PHP_EOL . PHP_EOL,
-				$new_slug,
+				$login_url,
 				PHP_EOL . PHP_EOL,
 				__( 'Please note this may be different than what you sent as the URL was sanitized to meet various requirements. A reminder has also been sent to the site administrator.', 'hide-dashboard' )
 			);
+
+			//Send an email to notify as well
+			$this->send_new_slug( $slug );
 
 		}
 
@@ -205,12 +215,9 @@ class Hide_Dashboard {
 
 		$enabled = ( isset( $input ) && intval( $input == 1 ) ? true : false );
 
-		//Notify them of the login change if they turn off the feature
-		if ( get_site_option( 'hd_enabled' ) == true && $enabled == false ) {
-
+		//Notify them of the login change if they turn the feature on or off
+		if ( get_site_option( 'hd_enabled' ) != $enabled ) {
 			add_site_option( 'hd_slug_changed', true ); //set an option so we can show the popup
-			$this->send_new_slug( 'wp-admin' ); //Send an email so they know what's up
-
 		}
 
 		return $enabled;
@@ -295,11 +302,9 @@ class Hide_Dashboard {
 
 		}
 
+		//If the new slug doesn't match the old we should let them know
 		if ( get_site_option( 'hd_slug' ) !== $slug ) {
-
 			add_site_option( 'hd_slug_changed', true ); //set an option so we can show the popup
-			$this->send_new_slug( $slug ); //Send an email so they know what's up
-
 		}
 
 		return $slug;
