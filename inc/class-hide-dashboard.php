@@ -80,7 +80,7 @@ class Hide_Dashboard {
 				add_filter( 'wp_redirect', array( $this, 'filter_login_url' ), 10, 2 );
 				add_filter( 'lostpassword_url', array( $this, 'filter_login_url' ), 10, 2 );
 				add_filter( 'site_url', array( $this, 'filter_login_url' ), 10, 2 );
-				//add_filter( 'retrieve_password_message', array( $this, 'retrieve_password_message' ) );
+				add_filter( 'retrieve_password_message', array( $this, 'retrieve_password_message' ) );
 				//add_filter( 'comment_moderation_text', array( $this, 'comment_moderation_text' ) );
 
 			}
@@ -532,6 +532,21 @@ class Hide_Dashboard {
 			exit();
 
 		}
+
+	}
+
+	/**
+	 * Filter the login URL in the password reset message
+	 *
+	 * @since 0.0.1
+	 *
+	 * @param string $message The password reset message
+	 *
+	 * @return string the password reset message
+	 */
+	public function retrieve_password_message( $message ) {
+
+		return str_replace( 'wp-login.php', get_site_option( 'hd_slug' ), $message );
 
 	}
 
