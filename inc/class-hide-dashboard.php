@@ -73,7 +73,7 @@ class Hide_Dashboard {
 				add_action( 'auth_cookie_expired', array( $this, 'auth_cookie_expired' ) );
 				add_action( 'init', array( $this, 'init' ), 1000 );
 				add_action( 'login_init', array( $this, 'login_init' ) );
-				//add_action( 'plugins_loaded', array( $this, 'plugins_loaded' ), 11 );
+				add_action( 'plugins_loaded', array( $this, 'plugins_loaded' ), 11 );
 
 				//add_filter( 'body_class', array( $this, 'remove_admin_bar' ) );
 				//add_filter( 'loginout', array( $this, 'loginout' ) );
@@ -448,6 +448,31 @@ class Hide_Dashboard {
 			$hd_is_old_admin = true;
 
 			$this->set_404();
+
+		}
+
+	}
+
+	/**
+	 * Actions for plugins loaded.
+	 *
+	 * Makes certain logout is processed on NGINX.
+	 *
+	 * @since 0.0.1
+	 *
+	 * @return void
+	 */
+	public function plugins_loaded() {
+
+		if ( is_user_logged_in() && isset( $_GET['action'] ) && sanitize_text_field( $_GET['action'] ) == 'logout' ) {
+
+			check_admin_referer( 'log-out' );
+			wp_logout();
+
+			$redirect_to = ! empty( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : 'wp-login.php?loggedout=true';
+
+			wp_safe_redirect( $redirect_to );
+			exit();
 
 		}
 
