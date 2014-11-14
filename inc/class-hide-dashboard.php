@@ -357,6 +357,40 @@ class Hide_Dashboard {
 	}
 
 	/**
+	 * Returns the server type of the plugin user.
+	 *
+	 * @since 0.0.1
+	 *
+	 * @return string|bool server type the user is using of false if undetectable.
+	 */
+	private static function get_server() {
+
+		$server_raw = strtolower( filter_var( $_SERVER['SERVER_SOFTWARE'], FILTER_SANITIZE_STRING ) );
+
+		//figure out what server they're using
+		if ( strpos( $server_raw, 'apache' ) !== false ) {
+
+			$server =  'apache';
+
+		} elseif ( strpos( $server_raw, 'nginx' ) !== false ) {
+
+			$server =  'nginx';
+
+		} elseif ( strpos( $server_raw, 'litespeed' ) !== false ) {
+
+			$server =  'litespeed';
+
+		} else { //unsupported server
+
+			$server =  false;
+
+		}
+
+		$server = apply_filters( 'hd_server_type', $server ); //allow users to override
+
+	}
+
+	/**
 	 * Execute hide backend functionality
 	 *
 	 * @since 0.0.1
