@@ -15,6 +15,7 @@
 class Hide_Dashboard {
 
 	private
+		$auth_cookie_expired,
 		$forbidden_slugs,
 		$plugin_file,
 		$slug_changed,
@@ -48,6 +49,43 @@ class Hide_Dashboard {
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) ); //enqueue scripts for admin page
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
+
+		//Execute hide backend functionality if plugin is active
+		//Execute module functions on frontend init
+		if ( get_site_option( 'hd_enabled' ) == true ) {
+
+			//Determine if Jetpack is active so we don't block it out
+			$jetpack_active_modules = get_option( 'jetpack_active_modules' );
+			$is_jetpack_active      = in_array( 'jetpack/jetpack.php', (array) get_option( 'active_plugins', array() ) );
+
+			if (
+			! (
+				$is_jetpack_active === true &&
+				is_array( $jetpack_active_modules ) &&
+				in_array( 'json-api', $jetpack_active_modules ) &&
+				isset( $_GET['action'] ) &&
+				$_GET['action'] == 'jetpack_json_api_authorization'
+			)
+			) {
+
+				$this->auth_cookie_expired = false;
+
+				add_action( 'auth_cookie_expired', array( $this, 'auth_cookie_expired' ) );
+				//add_action( 'init', array( $this, 'init' ), 1000 );
+				//add_action( 'login_init', array( $this, 'login_init' ) );
+				//add_action( 'plugins_loaded', array( $this, 'plugins_loaded' ), 11 );
+
+				//add_filter( 'body_class', array( $this, 'remove_admin_bar' ) );
+				//add_filter( 'loginout', array( $this, 'loginout' ) );
+				//add_filter( 'wp_redirect', array( $this, 'filter_login_url' ), 10, 2 );
+				//add_filter( 'lostpassword_url', array( $this, 'filter_login_url' ), 10, 2 );
+				//add_filter( 'site_url', array( $this, 'filter_login_url' ), 10, 2 );
+				//add_filter( 'retrieve_password_message', array( $this, 'retrieve_password_message' ) );
+				//add_filter( 'comment_moderation_text', array( $this, 'comment_moderation_text' ) );
+
+			}
+
+		}
 
 	}
 
@@ -97,13 +135,13 @@ class Hide_Dashboard {
 			//Get the correct_slug
 			if ( get_site_option( 'hd_enabled' ) == true ) {
 
-				add_rewrite_rule( $slug . '/?$','wp-login.php','top');
+				add_rewrite_rule( $slug . '/?$', 'wp-login.php', 'top' );
 				$slug = get_site_option( 'hd_slug' );
 
 			}
 
 			$this->slug_changed = true;
-			$login_url           = get_site_url() . '/' . $slug;
+			$login_url          = get_site_url() . '/' . $slug;
 
 			$this->slug_text = sprintf(
 				'%s%s%s%s%s',
@@ -205,6 +243,21 @@ class Hide_Dashboard {
 			'hd_theme_compat_slug',
 			array( $this, 'sanitize_theme_compat_slug' )
 		);
+
+	}
+
+	/**
+	 * Lets the plugin know that this is a re-authorization
+	 *
+	 * @since 0.0.1
+	 *
+	 * @return void
+	 */
+	public function auth_cookie_expired() {
+
+		$this->auth_cookie_expired = true;
+
+		wp_clear_auth_cookie();
 
 	}
 
