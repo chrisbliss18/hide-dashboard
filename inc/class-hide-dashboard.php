@@ -47,6 +47,11 @@ class Hide_Dashboard {
 		//remember the text domain
 		load_plugin_textdomain( 'hide-dashboard', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
 
+		//Handle activate, deactivate and uninstall
+		register_activation_hook( $this->plugin_file, array( $this, 'activation_hook' ) );
+		register_deactivation_hook( $this->plugin_file, array( $this, 'deactivation_hook' ) );
+		register_uninstall_hook( $this->plugin_file, array( $this, 'uninstall_hook' ) );
+
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) ); //enqueue scripts for admin page
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
 
@@ -84,6 +89,50 @@ class Hide_Dashboard {
 				add_filter( 'comment_moderation_text', array( $this, 'comment_moderation_text' ) );
 
 			}
+
+		}
+
+	}
+
+	/**
+	 * Process plugin activation
+	 *
+	 * @since 0.0.1
+	 *
+	 * @return void
+	 */
+	public function activation_hook() {
+
+		if ( in_array( 'ithemes-security-pro/ithemes-security-pro.php', (array) get_option( 'active_plugins', array() ) ) || in_array( 'better-wp-security/better-wp-security.php', (array) get_option( 'active_plugins', array() ) ) ) {
+
+			$itsec_settings = get_site_option( 'itsec_hide_backend' );
+
+			if ( isset( $itsec_settings['enabled'] ) ) {
+				add_site_option( 'hd_enabled', $itsec_settings['enabled'] );
+			}
+
+			if ( isset( $itsec_settings['slug'] ) ) {
+				add_site_option( 'hd_slug', $itsec_settings['hd_slug'] );
+			}
+
+			if ( isset( $itsec_settings['register'] ) ) {
+				add_site_option( 'hd_register', $itsec_settings['hd_register'] );
+			}
+
+			if ( isset( $itsec_settings['theme_compat'] ) ) {
+				add_site_option( 'hd_theme_compat', $itsec_settings['hd_theme_compat'] );
+			}
+
+			if ( isset( $itsec_settings['theme_compat_slug'] ) ) {
+				add_site_option( 'hd_theme_compat_slug', $itsec_settings['hd_theme_compat_slug'] );
+			}
+
+			if ( isset( $itsec_settings['post_logout_slug'] ) ) {
+				add_site_option( 'hd_login_action', $itsec_settings['post_logout_slug'] );
+			}
+
+			delete_site_option( 'itsec_hide_backend' );
+			add_site_option( 'hd_slug_changed', true ); //set an option so we can show the popup
 
 		}
 
@@ -374,6 +423,21 @@ class Hide_Dashboard {
 	}
 
 	/**
+	 * Process plugin deactivation
+	 *
+	 * @since 0.0.1
+	 *
+	 * @return void
+	 */
+	public function deactivation_hook() {
+
+		delete_site_option( 'hd_slug_changed' );
+
+		flush_rewrite_rules();
+
+	}
+
+	/**
 	 * Filters redirects for correct login URL
 	 *
 	 * @since 0.0.1
@@ -384,7 +448,7 @@ class Hide_Dashboard {
 	 */
 	public function filter_login_url( $url ) {
 
-		return str_replace( 'wp-login.php', get_site_option( '_hdslug' ), $url );
+		return str_replace( 'wp-login.php', get_site_option( 'hd_slug' ), $url );
 
 	}
 
@@ -563,7 +627,7 @@ class Hide_Dashboard {
 			if ( ! is_user_logged_in() ) {
 				//Add the login form
 
-				if ( strlen( trim( get_site_option( 'hd_post_logout_slug' ) ) ) > 0 && isset( $_GET['action'] ) && sanitize_text_field( $_GET['action'] ) == trim( get_site_option( 'hd_post_logout_slug' ) ) ) {
+				if ( strlen( trim( get_site_option( 'hd_login_action' ) ) ) > 0 && isset( $_GET['action'] ) && sanitize_text_field( $_GET['action'] ) == trim( get_site_option( 'hd_login_action' ) ) ) {
 
 					//add hook here for custom users... Begin deprication of itsec hook
 					do_action( 'itsec_custom_login_slug' );
@@ -589,7 +653,7 @@ class Hide_Dashboard {
 
 				}
 
-			} elseif ( ! isset( $_GET['action'] ) || ( sanitize_text_field( $_GET['action'] ) != 'logout' && sanitize_text_field( $_GET['action'] ) != 'postpass' && ( strlen( trim( get_site_option( 'hd_post_logout_slug' ) ) ) > 0 && sanitize_text_field( $_GET['action'] ) != trim( get_site_option( 'hd_post_logout_slug' ) ) ) ) ) {
+			} elseif ( ! isset( $_GET['action'] ) || ( sanitize_text_field( $_GET['action'] ) != 'logout' && sanitize_text_field( $_GET['action'] ) != 'postpass' && ( strlen( trim( get_site_option( 'hd_login_action' ) ) ) > 0 && sanitize_text_field( $_GET['action'] ) != trim( get_site_option( 'hd_login_action' ) ) ) ) ) {
 				//Just redirect them to the dashboard (for logged in users)
 
 				if ( $this->auth_cookie_expired === false ) {
@@ -599,10 +663,10 @@ class Hide_Dashboard {
 
 				}
 
-			} elseif ( isset( $_GET['action'] ) && ( sanitize_text_field( $_GET['action'] ) == 'postpass' || ( strlen( trim( get_site_option( 'hd_post_logout_slug' ) ) ) > 0 && sanitize_text_field( $_GET['action'] ) == trim( get_site_option( 'hd_post_logout_slug' ) ) ) ) ) {
+			} elseif ( isset( $_GET['action'] ) && ( sanitize_text_field( $_GET['action'] ) == 'postpass' || ( strlen( trim( get_site_option( 'hd_login_action' ) ) ) > 0 && sanitize_text_field( $_GET['action'] ) == trim( get_site_option( 'hd_login_action' ) ) ) ) ) {
 				//handle private posts for
 
-				if ( strlen( trim( get_site_option( 'hd_post_logout_slug' ) ) ) > 0 && sanitize_text_field( $_GET['action'] ) == trim( get_site_option( 'hd_post_logout_slug' ) ) ) {
+				if ( strlen( trim( get_site_option( 'hd_login_action' ) ) ) > 0 && sanitize_text_field( $_GET['action'] ) == trim( get_site_option( 'hd_login_action' ) ) ) {
 
 					//add hook here for custom users: Begin deprication of itsec slug
 					do_action( 'itsec_custom_login_slug' );
@@ -1065,6 +1129,27 @@ class Hide_Dashboard {
 		echo '<input name="hd_theme_compat_slug" id="hd_theme_compat_slug" value="' . $slug . '" type="text"><br />';
 		echo '<label for="hd_theme_compat_slug">' . __( '404 Slug:', 'hide-dashboad' ) . trailingslashit( get_option( 'siteurl' ) ) . '<span style="color: #4AA02C">' . $slug . '</span></label>';
 		echo '<p class="description">' . __( 'The slug to redirect folks to when theme compatibility mode is enabled (just make sure it does not exist in your site).', 'hide-dashboad' ) . '</p>';
+
+	}
+
+	/**
+	 * Process plugin uninstall
+	 *
+	 * @since 0.0.1
+	 *
+	 * @return void
+	 */
+	public function uninstall_hook() {
+
+		delete_site_option( 'hd_slug_changed' );
+		delete_site_option( 'hd_enabled' );
+		delete_site_option( 'hd_slug' );
+		delete_site_option( 'hd_register' );
+		delete_site_option( 'hd_theme_compat' );
+		delete_site_option( 'hd_theme_compat_slug' );
+		delete_site_option( 'hd_login_action' );
+
+		flush_rewrite_rules();
 
 	}
 
