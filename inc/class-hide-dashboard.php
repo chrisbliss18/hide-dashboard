@@ -631,6 +631,40 @@ class Hide_Dashboard {
 	}
 
 	/**
+	 * Sets 404 error at later time.
+	 *
+	 * @since 0.0.1
+	 *
+	 * @return void
+	 */
+	public function set_404() {
+
+		global $wp_query;
+
+		status_header( 404 );
+
+		if ( function_exists( 'nocache_headers' ) ) {
+			nocache_headers();
+		}
+
+		$wp_query->set_404();
+		$page_404 = get_404_template();
+
+		if ( strlen( $page_404 ) > 1 ) {
+
+			include( $page_404 );
+
+		} else {
+
+			include( get_query_template( 'index' ) );
+
+		}
+
+		die();
+
+	}
+
+	/**
 	 * Set HTML content type for email
 	 *
 	 * @return string html content type
