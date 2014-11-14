@@ -71,7 +71,7 @@ class Hide_Dashboard {
 				$this->auth_cookie_expired = false;
 
 				add_action( 'auth_cookie_expired', array( $this, 'auth_cookie_expired' ) );
-				//add_action( 'init', array( $this, 'init' ), 1000 );
+				add_action( 'init', array( $this, 'init' ), 1000 );
 				//add_action( 'login_init', array( $this, 'login_init' ) );
 				//add_action( 'plugins_loaded', array( $this, 'plugins_loaded' ), 11 );
 
