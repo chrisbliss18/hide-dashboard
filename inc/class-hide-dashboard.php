@@ -75,7 +75,7 @@ class Hide_Dashboard {
 				add_action( 'login_init', array( $this, 'login_init' ) );
 				add_action( 'plugins_loaded', array( $this, 'plugins_loaded' ), 11 );
 
-				//add_filter( 'body_class', array( $this, 'remove_admin_bar' ) );
+				add_filter( 'body_class', array( $this, 'body_class' ) );
 				//add_filter( 'loginout', array( $this, 'loginout' ) );
 				//add_filter( 'wp_redirect', array( $this, 'filter_login_url' ), 10, 2 );
 				//add_filter( 'lostpassword_url', array( $this, 'filter_login_url' ), 10, 2 );
@@ -258,6 +258,33 @@ class Hide_Dashboard {
 		$this->auth_cookie_expired = true;
 
 		wp_clear_auth_cookie();
+
+	}
+
+	/**
+	 * Removes the admin bar class from the body tag
+	 *
+	 * @since 0.0.1
+	 *
+	 * @param  array $classes body tag classes
+	 *
+	 * @return array          body tag classes
+	 */
+	public function body_class( $classes ) {
+
+		if ( is_admin() && is_user_logged_in() !== true ) {
+
+			foreach ( $classes as $key => $value ) {
+
+				if ( $value == 'admin-bar' ) {
+					unset( $classes[ $key ] );
+				}
+
+			}
+
+		}
+
+		return $classes;
 
 	}
 
