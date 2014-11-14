@@ -81,7 +81,7 @@ class Hide_Dashboard {
 				add_filter( 'lostpassword_url', array( $this, 'filter_login_url' ), 10, 2 );
 				add_filter( 'site_url', array( $this, 'filter_login_url' ), 10, 2 );
 				add_filter( 'retrieve_password_message', array( $this, 'retrieve_password_message' ) );
-				//add_filter( 'comment_moderation_text', array( $this, 'comment_moderation_text' ) );
+				add_filter( 'comment_moderation_text', array( $this, 'comment_moderation_text' ) );
 
 			}
 
@@ -285,6 +285,33 @@ class Hide_Dashboard {
 		}
 
 		return $classes;
+
+	}
+
+	/**
+	 *Filter url in comment moderation links
+	 *
+	 * * @since 0.0.1
+	 *
+	 * @param string $notify_message Notification message
+	 *
+	 * @return string Notification message
+	 */
+	public function comment_moderation_text( $notify_message ) {
+
+		preg_match_all( "#(https?:\/\/((.*)wp-admin(.*)))#", $notify_message, $urls );
+
+		if ( isset( $urls ) && is_array( $urls ) && isset( $urls[0] ) ) {
+
+			foreach ( $urls[0] as $url ) {
+
+				$notify_message = str_replace( trim( $url ), wp_login_url( trim( $url ) ), $notify_message );
+
+			}
+
+		}
+
+		return $notify_message;
 
 	}
 
