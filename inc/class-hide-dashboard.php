@@ -130,18 +130,72 @@ class Hide_Dashboard {
 
 			delete_site_option( 'hd_slug_changed' ); //cleanup after ourselves.... Mom don't code here
 
-			$slug = 'wp-admin';
+			$slug        = 'wp-admin';
+			$server_type = $this->get_server();
+			$nginx_text  = '';
+			$conf_file   = '';
+			$home_root   = '';
+			$rule        = '';
+
+			if ( $server_type == 'nginx' ) {
+
+				$conf_file = $this->get_home_path() . 'nginx_rule.conf';
+				$home_root = $this->get_home_root();
+
+				//Delete the configuration file if it exists
+				if ( @file_exists( $conf_file ) ) {
+					@unlink( @$conf_file );
+				}
+
+			}
 
 			//Get the correct_slug
 			if ( get_site_option( 'hd_enabled' ) == true ) {
 
-				add_rewrite_rule( $slug . '/?$', 'wp-login.php', 'top' );
 				$slug = get_site_option( 'hd_slug' );
+
+				if ( $server_type == 'nginx' ) {
+
+					$rule = "rewrite ^(" . $home_root . ")?" . $slug . "/?$ " . $home_root . "wp-login.php?\$query_string break;" . PHP_EOL;
+
+					error_log( $rule, 3, $conf_file ); //Save it to a file
+
+				} else {
+
+					add_rewrite_rule( $slug . '/?$', 'wp-login.php', 'top' );
+
+				}
 
 			}
 
 			$this->slug_changed = true;
 			$login_url          = get_site_url() . '/' . $slug;
+
+			if ( $server_type == 'nginx' ) {
+
+				if ( get_site_option( 'hd_enabled' ) == true ) {
+
+					$nginx_text = sprintf(
+						'<p>%s</p><p>%s<br /><strong>%s</strong></p><p>%s<br /><strong>%s</strong></p>',
+						__( 'You will need to manually add the rewrite rule necessary to make the feature work with your NGINX server.', 'hide-dashboard' ),
+						__( 'The rewrite rule to add is:', 'hide-dashboard' ),
+						$rule,
+						__( 'You can also find it saved for your convenience at:', 'hide-dashboard' ),
+						$conf_file
+
+					);
+
+				} else {
+
+					$nginx_text = sprintf(
+						'<p>%s</p>',
+						__( 'You will need to manually remove the rewrite rule necessary to make the feature work with your NGINX server. Please remove the rule added when activating the feature.', 'hide-dashboard' )
+
+					);
+
+				}
+
+			}
 
 			$this->slug_text = sprintf(
 				'%s%s%s%s%s',
@@ -152,11 +206,15 @@ class Hide_Dashboard {
 				__( 'Please note this may be different than what you sent as the URL was sanitized to meet various requirements. A reminder has also been sent to the site administrator.', 'hide-dashboard' )
 			);
 
+			$this->slug_text .= $nginx_text;
+
 			//Send an email to notify as well
 			$this->send_new_slug( $slug );
 
 			//Save the rewrite rules
-			flush_rewrite_rules();
+			if ( $server_type != 'nginx' ) {
+				flush_rewrite_rules();
+			}
 
 		}
 
@@ -331,13 +389,52 @@ class Hide_Dashboard {
 	}
 
 	/**
+	 * Get the absolute filesystem path to the root of the WordPress installation
+	 *
+	 * @since 0.0.1
+	 *
+	 * @return string Full filesystem path to the root of the WordPress installation
+	 */
+	private function get_home_path() {
+
+		$home    = set_url_scheme( get_option( 'home' ), 'http' );
+		$siteurl = set_url_scheme( get_option( 'siteurl' ), 'http' );
+
+		if ( ! empty( $home ) && 0 !== strcasecmp( $home, $siteurl ) ) {
+
+			$wp_path_rel_to_home = str_ireplace( $home, '', $siteurl ); /* $siteurl - $home */
+			$pos                 = strripos( str_replace( '\\', '/', $_SERVER['SCRIPT_FILENAME'] ), trailingslashit( $wp_path_rel_to_home ) );
+
+			if ( $pos === false ) {
+
+				$home_path = dirname( $_SERVER['SCRIPT_FILENAME'] );
+
+			} else {
+
+				$home_path = substr( $_SERVER['SCRIPT_FILENAME'], 0, $pos );
+
+			}
+
+		} else {
+
+			$home_path = ABSPATH;
+
+		}
+
+		$home_path = apply_filters( 'hd_home_path', $home_path ); //Allow users to override
+
+		return trailingslashit( str_replace( '\\', '/', $home_path ) );
+
+	}
+
+	/**
 	 * Returns the root of the WordPress install
 	 *
 	 * @since 0.0.1
 	 *
 	 * @return string the root folder
 	 */
-	public static function get_home_root() {
+	private function get_home_root() {
 
 		//homeroot from wp_rewrite
 		$home_root = parse_url( site_url() );
@@ -365,26 +462,26 @@ class Hide_Dashboard {
 	 *
 	 * @return string|bool server type the user is using of false if undetectable.
 	 */
-	private static function get_server() {
+	private function get_server() {
 
 		$server_raw = strtolower( filter_var( $_SERVER['SERVER_SOFTWARE'], FILTER_SANITIZE_STRING ) );
 
 		//figure out what server they're using
 		if ( strpos( $server_raw, 'apache' ) !== false ) {
 
-			$server =  'apache';
+			$server = 'apache';
 
 		} elseif ( strpos( $server_raw, 'nginx' ) !== false ) {
 
-			$server =  'nginx';
+			$server = 'nginx';
 
 		} elseif ( strpos( $server_raw, 'litespeed' ) !== false ) {
 
-			$server =  'litespeed';
+			$server = 'litespeed';
 
 		} else { //unsupported server
 
-			$server =  false;
+			$server = false;
 
 		}
 
