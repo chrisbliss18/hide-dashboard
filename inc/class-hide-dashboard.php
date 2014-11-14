@@ -388,6 +388,8 @@ class Hide_Dashboard {
 
 		$server = apply_filters( 'hd_server_type', $server ); //allow users to override
 
+		return $server;
+
 	}
 
 	/**
