@@ -352,6 +352,8 @@ class Hide_Dashboard {
 
 		}
 
+		$home_root = apply_filters( 'hd_home_root', $home_root ); //allow users to override
+
 		return $home_root;
 
 	}
