@@ -76,7 +76,7 @@ class Hide_Dashboard {
 				add_action( 'plugins_loaded', array( $this, 'plugins_loaded' ), 11 );
 
 				add_filter( 'body_class', array( $this, 'body_class' ) );
-				//add_filter( 'loginout', array( $this, 'loginout' ) );
+				add_filter( 'loginout', array( $this, 'loginout' ) );
 				//add_filter( 'wp_redirect', array( $this, 'filter_login_url' ), 10, 2 );
 				//add_filter( 'lostpassword_url', array( $this, 'filter_login_url' ), 10, 2 );
 				//add_filter( 'site_url', array( $this, 'filter_login_url' ), 10, 2 );
@@ -477,6 +477,21 @@ class Hide_Dashboard {
 			$this->set_404();
 
 		}
+
+	}
+
+	/**
+	 * Filter meta link
+	 *
+	 * @since 0.0.1
+	 *
+	 * @param string $link the link
+	 *
+	 * @return string the link
+	 */
+	public function filter_loginout( $link ) {
+
+		return str_replace( 'wp-login.php', get_site_option( 'hd_slug' ), $link );
 
 	}
 
