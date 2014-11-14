@@ -72,7 +72,7 @@ class Hide_Dashboard {
 
 				add_action( 'auth_cookie_expired', array( $this, 'auth_cookie_expired' ) );
 				add_action( 'init', array( $this, 'init' ), 1000 );
-				//add_action( 'login_init', array( $this, 'login_init' ) );
+				add_action( 'login_init', array( $this, 'login_init' ) );
 				//add_action( 'plugins_loaded', array( $this, 'plugins_loaded' ), 11 );
 
 				//add_filter( 'body_class', array( $this, 'remove_admin_bar' ) );
@@ -427,6 +427,27 @@ class Hide_Dashboard {
 				}
 
 			}
+
+		}
+
+	}
+
+	/**
+	 * Filter the old login page out
+	 *
+	 * @since 0.0.1
+	 *
+	 * @return void
+	 */
+	public function login_init() {
+
+		if ( strpos( $_SERVER['REQUEST_URI'], 'wp-login.php' ) ) { //are we on the login page
+
+			global $hd_is_old_admin;
+
+			$hd_is_old_admin = true;
+
+			$this->set_404();
 
 		}
 
